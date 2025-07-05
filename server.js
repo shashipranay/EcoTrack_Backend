@@ -56,11 +56,55 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// Request logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Footprint Wise Eco Backend is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Root endpoint for debugging
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Footprint Wise Eco Backend Root',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      users: '/api/users',
+      activities: '/api/activities',
+      insights: '/api/insights',
+      goals: '/api/goals',
+      achievements: '/api/achievements',
+      analytics: '/api/analytics'
+    }
+  });
+});
+
+// Debug endpoint to show all routes
+app.get('/api/routes', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach(middleware => {
+    if (middleware.route) {
+      const methods = Object.keys(middleware.route.methods);
+      routes.push({
+        path: middleware.route.path,
+        methods: methods
+      });
+    }
+  });
+  res.json({ 
+    message: 'Available API Routes',
+    routes: routes,
     timestamp: new Date().toISOString()
   });
 });
